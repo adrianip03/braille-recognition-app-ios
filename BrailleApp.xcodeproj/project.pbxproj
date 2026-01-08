@@ -29,9 +29,22 @@
 		3A33E51C2F08C0E100ADFD03 /* BrailleAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrailleAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3A2FDAF52F0F47AD008513EF /* Exceptions for "BrailleApp" folder in "BrailleApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3A33E5042F08C0E000ADFD03 /* BrailleApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3A33E5072F08C0E000ADFD03 /* BrailleApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3A2FDAF52F0F47AD008513EF /* Exceptions for "BrailleApp" folder in "BrailleApp" target */,
+			);
 			path = BrailleApp;
 			sourceTree = "<group>";
 		};
@@ -395,8 +408,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7W7X7NHJV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BrailleApp/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to capture Braille patterns";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs photo library access to select images for processing";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -422,8 +439,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7W7X7NHJV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BrailleApp/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to capture Braille patterns";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs photo library access to select images for processing";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

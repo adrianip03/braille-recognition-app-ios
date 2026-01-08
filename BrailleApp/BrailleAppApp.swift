@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct BrailleAppApp: App {
@@ -13,5 +14,6 @@ struct BrailleAppApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: TranslationRecord.self)
     }
 }
