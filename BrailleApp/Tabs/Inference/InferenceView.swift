@@ -36,19 +36,38 @@ struct InferenceView: View {
         try? context.save()
     }
     
-    //mock api
+    //data in png format
     private func getInferenceResults(data: Data) async -> InferenceResult? {
-        // send png to api
+        let apiURL = Env.apiURL
         
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        //dummy result
-        let result = InferenceResult(
-            braille: "⠇⠕⠗⠑⠍ ⠊⠏⠎⠥⠍ ⠙⠕⠇⠕⠗ ⠎⠊⠞ ⠁⠍⠑⠞⠂ ⠉⠕⠝⠎⠑⠉⠞⠑⠞⠥⠗ ⠁⠙⠊⠏⠊⠎⠉⠊⠝⠛ ⠑⠇⠊⠞⠲ ⠍⠕⠗⠃⠊ ⠉⠕⠍⠍⠕⠙⠕ ⠎⠑⠍ ⠁⠗⠉⠥⠂ ⠋⠁⠥⠉⠊⠃⠥⠎ ⠁⠥⠉⠞⠕⠗ ⠁⠥⠛⠥⠑ ⠎⠁⠛⠊⠞⠞⠊⠎ ⠑⠞⠲",
-            text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi commodo sem arcu, faucibus auctor augue sagittis et.",
-            confidence: 0.9,
-            boundingBox: CGRect(x: 100, y: 100, width: 200, height: 50)
-        )
-        return result
+        var request = URLRequest(url: URL(string: apiURL)!)
+        request.httpMethod = "POST"
+        request.timeoutInterval = Env.apiTimeout
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.png\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/png\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        do {
+            let (responseData, _) = try await URLSession.shared.data(for: request)
+            
+            let apiResponse = try JSONDecoder().decode(APIResponse.self, from: responseData)
+            
+            print(apiResponse)
+            
+            return InferenceResult(from: apiResponse, imageSize: image.size)
+        } catch {
+            print("Error: \(error)")
+            return nil
+        }
 
     }
     
@@ -57,18 +76,15 @@ struct InferenceView: View {
         isLoading = true
         
         Task {
-            if let data = image.pngData(){
-                if let inferenceResult = await getInferenceResults(data: data) {
-                    result = inferenceResult
-                    
-                    saveTranslationRecord(braille: inferenceResult.braille, text: inferenceResult.text)
-                } else {
-                    print("sth wrong")
-                }
-            } else {
-                print("cannot convert to png")
+            guard let data = image.pngData(),
+                  let inferenceResult = await getInferenceResults(data: data) else {
+                print("sth wrong")
+                return
             }
-            
+    
+            result = inferenceResult
+            print(result!)
+            saveTranslationRecord(braille: inferenceResult.braille, text: inferenceResult.text)
         }
     }
     
@@ -76,17 +92,19 @@ struct InferenceView: View {
         ZStack {
             Color.background.ignoresSafeArea()
             
+            
             Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .ignoresSafeArea()
                 .scaleEffect(scale)
                 .offset(offset)
-                
-            if let result = result {
-                resultsOverlay(result: result)
-                    .allowsHitTesting(false)
-            }
+                .overlay {
+                    if let result = result {
+                        resultsOverlay(result: result)
+                    }
+                }
+            
         }
         .onAppear {
             startInference()
@@ -144,38 +162,49 @@ struct InferenceView: View {
         )
     }
     
+    @ViewBuilder
     private func resultsOverlay(result: InferenceResult) -> some View {
         
         let text = result.text
-        let boxSize = result.boundingBox.size
+        let box = result.boundingBox
         
-        return Rectangle()
-                    .fill(Color.black.opacity(0.6))
-                    .overlay(
-                        Text(text)
-                            .font(.system(size: calcFontSize(text: text, containerSize: boxSize)))
-                            .foregroundColor(Color.white)
-                            .multilineTextAlignment(.center)
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(nil)
-                            .padding(8)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    )
-                    .ignoresSafeArea()
-                    .frame(width: boxSize.width, height: boxSize.height)
-                    .position(
-                        x: result.boundingBox.midX,
-                        y: result.boundingBox.midY
-                    )
-                    .scaleEffect(scale)
-                    .offset(offset)
+        GeometryReader { geometry in
+            ZStack {
+                Rectangle()
+                    .fill(Color.black.opacity(0.3))
+                    .edgesIgnoringSafeArea(.all)
+            
+                Text(text)
+                    .font(.system(size: calcFontSize(text: text, containerSize: geometry.size)))
+                    .foregroundColor(Color.white)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(nil)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .textSelection(.enabled)
+                
+            }
+            .frame(
+                width: geometry.size.width * box.width,
+                height: geometry.size.height * box.height,
+            )
+            .position(
+                x: geometry.size.width * box.origin.x + (geometry.size.width * box.width) / 2,
+                y: geometry.size.height * box.origin.y + (geometry.size.height * box.height) / 2
+            )
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(true)
+        .scaleEffect(scale)
+        .offset(offset)
     }
     
     private func calcFontSize(text: String, containerSize: CGSize) -> CGFloat {
         let charCount = text.count
         let boxArea = containerSize.width * containerSize.height
         
-        return (boxArea / CGFloat(charCount)) * 0.3
+        return min(22, max(5, (boxArea / CGFloat(charCount)) * 0.3))
     }
     
 }
