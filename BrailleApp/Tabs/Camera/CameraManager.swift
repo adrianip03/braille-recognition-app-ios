@@ -255,6 +255,11 @@ class CameraManager: NSObject, ObservableObject {
             return
         }
         
+        
+        if connection.isVideoStabilizationSupported {
+            connection.preferredVideoStabilizationMode = .auto
+        }
+        
         if #available(iOS 17.0, *) {
             connection.videoRotationAngle = 90
         } else {

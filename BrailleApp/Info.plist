@@ -10,7 +10,9 @@
     <!-- Replace these values with your actual configuration -->
     <key>API_BASE_URL</key>
     <!-- <string>REPLACE_WITH_YOUR_URL</string> -->
-    <string>http://192.168.1.6:8000</string>
+<!--    <string>https://fypyolomodel-755425936313.asia-east2.run.app</string>-->
+     <string>http://192.168.1.4:8000</string>
+<!--     <string>http://172.20.10.3:8000</string>-->
     
     <key>API_PREDICT_ENDPOINT</key>
     <string>/predict</string>

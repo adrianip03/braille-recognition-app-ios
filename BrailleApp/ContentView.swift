@@ -20,7 +20,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house", value: .home) {
-                HomeView()
+                HomeView(onSeeBookmarks: {selectedTab = .bookmarks})
             }
             Tab("Bookmarks", systemImage: "bookmark", value: .bookmarks) {
                 BookmarkView()

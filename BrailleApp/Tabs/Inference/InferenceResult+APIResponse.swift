@@ -15,6 +15,13 @@ struct APIResponse: Codable {
     let confidence: Double
     let message: String?
     let boundingBox: [CGFloat]?
+    let inpaintedImage: ImageResponse?
+}
+
+struct ImageResponse: Codable {
+    let mimeType: String
+    let encoding: String
+    let data: String // b64
 }
 
 struct InferenceResult {

@@ -17,6 +17,7 @@ struct InferenceView: View {
     @State private var lastOffset: CGSize = .zero
     @State private var result: InferenceResult? = nil
     @State private var isLoading: Bool = false
+    @State private var inpaintedUIImage: UIImage? = nil
     @Environment(\.modelContext) private var context
     
     private func maxOffset(with scale: CGFloat) -> CGSize {
@@ -57,11 +58,28 @@ struct InferenceView: View {
         request.httpBody = body
         
         do {
+            let startTime = Date()
+            
             let (responseData, _) = try await URLSession.shared.data(for: request)
+            let responseTime = Date().timeIntervalSince(startTime)
+            print(responseTime)
             
             let apiResponse = try JSONDecoder().decode(APIResponse.self, from: responseData)
             
             print(apiResponse)
+            if apiResponse.message == "No braille characters detected" {
+                print("No braille detected")
+                return nil
+            }
+            
+            if let inpaintedImg = apiResponse.inpaintedImage,
+               inpaintedImg.encoding == "base64"{
+                if let uiInpaintedImg = decodeBase64Image(inpaintedImg.data) {
+                    DispatchQueue.main.async {
+                        self.inpaintedUIImage = uiInpaintedImg
+                    }
+                }
+            }
             
             return InferenceResult(from: apiResponse, imageSize: image.size)
         } catch {
@@ -71,20 +89,25 @@ struct InferenceView: View {
 
     }
     
+    private func decodeBase64Image(_ base64: String) -> UIImage? {
+        guard let imgData = Data(base64Encoded: base64) else { return nil }
+        return UIImage(data: imgData)
+    }
+    
     private func startInference() {
         guard !isLoading else { return }
         isLoading = true
         
         Task {
-            guard let data = image.pngData(),
-                  let inferenceResult = await getInferenceResults(data: data) else {
+            guard let data = image.pngData() else {
                 print("sth wrong")
                 return
             }
+            if let inferenceResult = await getInferenceResults(data: data) {
+                result = inferenceResult
+                saveTranslationRecord(braille: inferenceResult.braille, text: inferenceResult.text)
+            }
     
-            result = inferenceResult
-            print(result!)
-            saveTranslationRecord(braille: inferenceResult.braille, text: inferenceResult.text)
         }
     }
     
@@ -92,8 +115,7 @@ struct InferenceView: View {
         ZStack {
             Color.background.ignoresSafeArea()
             
-            
-            Image(uiImage: image)
+            Image(uiImage: inpaintedUIImage ?? image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .ignoresSafeArea()
@@ -170,13 +192,13 @@ struct InferenceView: View {
         
         GeometryReader { geometry in
             ZStack {
-                Rectangle()
-                    .fill(Color.black.opacity(0.3))
-                    .edgesIgnoringSafeArea(.all)
+//                Rectangle()
+//                    .fill(Color.black.opacity(0.3))
+//                    .edgesIgnoringSafeArea(.all)
             
                 Text(text)
                     .font(.system(size: calcFontSize(text: text, containerSize: geometry.size)))
-                    .foregroundColor(Color.white)
+                    .foregroundColor(Color.black)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.5)
                     .lineLimit(nil)

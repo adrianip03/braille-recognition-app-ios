@@ -27,6 +27,9 @@ struct CameraBottomControls: View {
                             .background(Circle().fill(Color.black.opacity(0.7)))
                     }
                     .padding(.leading, 24)
+                    .accessibilityLabel("Select photo from library")
+                    .accessibilityHint("Tap to open photo selection")
+                    .accessibilityAddTraits(.isButton)
                 }
                 
                 Spacer()

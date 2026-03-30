@@ -11,6 +11,9 @@ import SwiftData
 struct HomeView: View {
     @Query(filter: #Predicate<TranslationRecord> { $0.bookmarked == true }, sort: \TranslationRecord.datetime, order: .reverse) private var bookmarkedRecords: [TranslationRecord]
     
+    
+    let onSeeBookmarks: () -> Void
+    
     var body: some View {
         NavigationStack{
             ScrollView {
@@ -35,12 +38,11 @@ struct HomeView: View {
                                     .fontWeight(.semibold)
                                 Spacer()
                                 
-                                NavigationLink {
-                                    
-                                } label: {
+                                Button(action: onSeeBookmarks) {
                                     Text("See All")
                                         .font(.subheadline)
                                 }
+                                
                             }
                             .padding(.horizontal)
                             
@@ -62,5 +64,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    HomeView(onSeeBookmarks: {})
 }
