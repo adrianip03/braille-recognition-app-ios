@@ -202,7 +202,7 @@ struct InferenceView: View {
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.5)
                     .lineLimit(nil)
-                    .padding(8)
+                    .padding(2)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .textSelection(.enabled)
                 
@@ -226,7 +226,8 @@ struct InferenceView: View {
         let charCount = text.count
         let boxArea = containerSize.width * containerSize.height
         
-        return min(22, max(5, (boxArea / CGFloat(charCount)) * 0.3))
+        let fontSize = min(42, max(5, (boxArea / CGFloat(charCount)) * 2))
+        return fontSize
     }
     
 }
