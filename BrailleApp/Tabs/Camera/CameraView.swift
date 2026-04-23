@@ -162,6 +162,7 @@ struct CameraView: View {
         }
     }
     
+    
     private func toggleFlash() {
         switch flashMode {
         case .off:

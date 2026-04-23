@@ -6,19 +6,11 @@
 	<array>
 		<string>Braille-Regular.ttf</string>
 	</array>
-
-    <!-- Replace these values with your actual configuration -->
-    <key>API_BASE_URL</key>
-    <!-- <string>REPLACE_WITH_YOUR_URL</string> -->
-<!--    <string>https://fypyolomodel-755425936313.asia-east2.run.app</string>-->
-<!--     <string>http://192.168.1.4:8000</string>-->
-     <string>http://10.68.13.90:8000</string>
-    
-    <key>API_PREDICT_ENDPOINT</key>
-    <string>/predict</string>
-    
-    <key>API_TIMEOUT</key>
-    <string>30</string>
-
+	<key>API_BASE_URL</key>
+	<string>http://192.168.1.4:8000</string>
+	<key>API_PREDICT_ENDPOINT</key>
+	<string>/predict</string>
+	<key>API_TIMEOUT</key>
+	<string>30</string>
 </dict>
 </plist>

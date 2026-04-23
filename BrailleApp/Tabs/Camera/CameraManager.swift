@@ -245,16 +245,16 @@ class CameraManager: NSObject, ObservableObject {
     
     // MARK: - Capture Photo
     
+    
     func capturePhoto(completion: @escaping (UIImage?, Error?) -> Void) {
         capturePhoto(flashMode: flashMode, completion: completion)
     }
-    
+
     func capturePhoto(flashMode: AVCaptureDevice.FlashMode, completion: @escaping (UIImage?, Error?) -> Void) {
         guard let connection = photoOutput.connection(with: .video) else {
             completion(nil, NSError(domain: "CameraManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "No camera connection"]))
             return
         }
-        
         
         if connection.isVideoStabilizationSupported {
             connection.preferredVideoStabilizationMode = .auto
@@ -278,8 +278,69 @@ class CameraManager: NSObject, ObservableObject {
             settings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
         }
         
-        photoCaptureCompletion = completion
+        // Store preview layer info for cropping
+        let previewBounds = previewLayer?.frame ?? .zero
+        let previewAspectRatio = previewBounds.width / previewBounds.height
+        
+        photoCaptureCompletion = { [weak self] image, error in
+            guard let self = self, let image = image else {
+                completion(nil, error)
+                return
+            }
+            
+            // Crop the image to match preview
+            let croppedImage = self.cropImageToPreviewLayer(image)
+            completion(croppedImage, error)
+        }
+        
         photoOutput.capturePhoto(with: settings, delegate: self)
+    }
+    
+    func cropImageToPreviewLayer(_ image: UIImage) -> UIImage {
+        guard let previewLayer = previewLayer else { return image }
+        
+        let previewBounds = previewLayer.frame
+        let previewSize = previewBounds.size
+        let imageSize = image.size
+        
+        // Calculate the scaling factor between the image and preview
+        let scaleX = imageSize.width / previewBounds.width
+        let scaleY = imageSize.height / previewBounds.height
+        
+        // Determine which dimension fills the preview (AspectFill)
+        let scale = min(scaleX, scaleY)
+        
+        // Calculate the visible area in image coordinates
+        let visibleWidth = previewBounds.width * scale
+        let visibleHeight = previewBounds.height * scale
+        
+        let cropRect = CGRect(
+            x: (imageSize.height - visibleHeight) / 2,
+            y: (imageSize.width - visibleWidth) / 2,
+            width: visibleHeight,
+            height: visibleWidth
+        )
+        
+        
+        return cropImage(image, to: cropRect)
+    }
+    
+    private func cropImage(_ image: UIImage, to rect: CGRect) -> UIImage {
+        guard let cgImage = image.cgImage else { return image }
+        
+        let scale = image.scale
+        let scaledRect = CGRect(
+            x: rect.origin.x * scale,
+            y: rect.origin.y * scale,
+            width: rect.width * scale,
+            height: rect.height * scale
+        )
+        
+        guard let croppedCGImage = cgImage.cropping(to: scaledRect) else {
+            return image
+        }
+        
+        return UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation)
     }
     
     // MARK: - Cleanup
